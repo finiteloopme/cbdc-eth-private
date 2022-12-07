@@ -88,15 +88,18 @@ contract vipCBDC is IERC20 {
     }
 
     // Lending function
-    // Before receiver can invoke this method, the provider needs to approve sufficient credit
-    function transferFrom(address creditProvider, address creditReceiver, uint256 numTokens) public override returns (bool) {
+    // Before caller can invoke this method, the caller needs sufficient credit with the provider
+    // Which can be established using "approve" function
+    function transferFrom(address creditProvider, address supplier, uint256 numTokens) public override returns (bool) {
         require(numTokens <= banks[creditProvider].balance);
         require(numTokens <= allowed[creditProvider][msg.sender]);
 
         banks[creditProvider].balance -= numTokens;
+        // msg.sender needs to have a valid approved credit with the provider
         allowed[creditProvider][msg.sender] = allowed[creditProvider][msg.sender]-numTokens;
-        banks[creditReceiver].balance = banks[creditReceiver].balance+numTokens;
-        emit Transfer(creditProvider, creditReceiver, numTokens);
+        // Note that the transfer happens directly from the credit provider to the supplier
+        banks[supplier].balance = banks[supplier].balance+numTokens;
+        emit Transfer(creditProvider, supplier, numTokens);
         return true;
     }
 }

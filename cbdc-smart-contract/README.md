@@ -6,11 +6,10 @@ This demo creates a hypothetical [CBDC][1].
 > These scenarios **DO NOT** accurately represent any banking model or monetary policies.  
 > The only aim of discussing these scenarios in the context of this this demo, is to showcase capabilities of a underlying blockchain based smart contract.
 
-There are three types of actors or stakeholders for our CBDC:
+Following actors are involved in our CBDC setup:
 
-1. Central bank - owner of the smart contract.  Mints coins, and lends money to _Commercial_ banks
-2. Commercial bank - that borrows from _Central_ Bank, allows other commercial banks or _consumers_ to deposit or borrow money.
-3. Consumer - customers that borrow or deposit money into a _commercial_ bank
+1. Central bank - controls supply of the CBDC
+2. Consumers - users for the CBDC
 
 # Digital Wallets
 
@@ -29,25 +28,40 @@ All the users will interact with our CDBC using a [crypto wallet][3].
 
 Metamask can used to [create a test wallet][2] to interact with this demo.
 
-# Scenarios
+# CBDC Functions
+
+Our CBDC is [ERC20][5] compliant.  All the functions supported by our CBDC are explained below.
+
+## Token in existence `totalSupply`
+
+Get the amount of CBDC in circulation.
+
+## Balance of an account `balanceOf`
+
+Get the total amount of CBDC owned by the account.
+
+## Check line of credit `allowance`
+
+Get the outstanding credit the receiver has with a particular _credit_ provider.  
+Allows a supplier to check viability of the purchaser (credit receiver) to pay for the goods/services.
+
+## Pay the receiver `transfer`
+
+Send the specified amount to the receiver
+
+## Approve a line of credit `approve`
+
+Set an approved amount of credit.
 
 ## Minting
 
-Only the central bank can mint new coins.  This is like creating money in the economy.
+Only the central bank can mint new coins.
 
-## Lending
+## Pay using credit `transferFrom`
 
-Banks can lend money to other banks or consumers.  
-
-## Deposits
-
-Banks can accept deposits from other banks or consumers.
-
-## Position
-
-Traditional view has been that commercial banks should hold set amount of _cash_ in their _vault_.  Meaning that the total amount of money loaned to their customers should be a fraction of the total deposits into the bank.  This allows the bank to honour withdrawal requests from their customers.  
-
-It is important to note that [Central banks like][4] Reserve Bank of Australia and Bank of Canda that have a no reserve policy.
+Sends the requested amount of token to the receiver.  
+The caller needs to have approved line of credit with the _credit provider_.  
+This allows the _credit provider_ to directly pay the supplier of the _service_ for which the _caller_ would have received the credit approval.
 
 # References
 
