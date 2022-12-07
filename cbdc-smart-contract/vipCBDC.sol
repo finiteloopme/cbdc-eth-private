@@ -97,9 +97,26 @@ contract vipCBDC is IERC20 {
         banks[creditProvider].balance -= numTokens;
         // msg.sender needs to have a valid approved credit with the provider
         allowed[creditProvider][msg.sender] = allowed[creditProvider][msg.sender]-numTokens;
-        // Note that the transfer happens directly from the credit provider to the supplier
+        banks[creditProvider].loanedAmount[msg.sender] += numTokens;
+        banks[msg.sender].borrowedAmount[creditProvider] += numTokens;
+        // Note that the transfer happens directly 
+        // from the credit provider to the supplier
         banks[supplier].balance = banks[supplier].balance+numTokens;
         emit Transfer(creditProvider, supplier, numTokens);
         return true;
+    }
+
+    // Make a loan installement
+    // Pay back (part or ) loan amount
+    // Does not adjust the line of credit or "allowance"
+    // Returns outstanding loan
+    function makeInstallment(address creditProvider, uint amount) public returns (uint256){
+        require(amount <= banks[msg.sender].borrowedAmount[creditProvider], 
+        "Amount bring paid can not be more than amount owed");
+
+        banks[creditProvider].loanedAmount[msg.sender] -= amount;
+        banks[msg.sender].borrowedAmount[creditProvider] -= amount;
+
+        return banks[creditProvider].loanedAmount[msg.sender];
     }
 }

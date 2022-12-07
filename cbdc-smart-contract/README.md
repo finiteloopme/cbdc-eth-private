@@ -28,40 +28,57 @@ All the users will interact with our CDBC using a [crypto wallet][3].
 
 Metamask can used to [create a test wallet][2] to interact with this demo.
 
+# Scenarios
+
+## 1. Central Bank _mints_ CBDC
+
+## 2. Central Bank _pays_ someone
+
+## 3. Establish a line of credit
+
+## 4. Pay the supplier using credit
+
 # CBDC Functions
 
 Our CBDC is [ERC20][5] compliant.  All the functions supported by our CBDC are explained below.
 
-## Token in existence `totalSupply`
+## 1. Token in existence `totalSupply`
 
 Get the amount of CBDC in circulation.
 
-## Balance of an account `balanceOf`
+## 2. Balance of an account `balanceOf`
 
 Get the total amount of CBDC owned by the account.
 
-## Check line of credit `allowance`
+## 3. Check line of credit `allowance`
 
 Get the outstanding credit the receiver has with a particular _credit_ provider.  
 Allows a supplier to check viability of the purchaser (credit receiver) to pay for the goods/services.
 
-## Pay the receiver `transfer`
+## 4. Pay the receiver `transfer`
 
 Send the specified amount to the receiver
 
-## Approve a line of credit `approve`
+## 5. Approve a line of credit `approve`
 
 Set an approved amount of credit.
 
-## Minting
-
-Only the central bank can mint new coins.
-
-## Pay using credit `transferFrom`
+## 6. Pay using credit `transferFrom`
 
 Sends the requested amount of token to the receiver.  
 The caller needs to have approved line of credit with the _credit provider_.  
 This allows the _credit provider_ to directly pay the supplier of the _service_ for which the _caller_ would have received the credit approval.
+
+> Following two functions are additional and not part of the ERC20 standard
+## 7. Minting
+
+Only the central bank can _create_ money.
+
+## 8. Make a loan installment `makeInstallment`
+
+Make a loan payment back to the credit provider.  This does not adjust the
+original line of credit.  A new `approve` invocation is required to restore
+origical value of the line of credit.
 
 # References
 

@@ -15,8 +15,8 @@ struct Bank{
     // TODO: allow creation of currency at level-2
     // Via commercial banks or lenders, who could borrow
     // from Central bank or other lenders
-    // // List of customers who have a loan with this bank
-    // mapping(address => uint256) loanedAmount;
-    // // List of borrowers who this bank has borrowed from
-    // mapping(address => uint256) borrowedAmount;
+    // List of customers who have a loan with this bank
+    mapping(address => uint256) loanedAmount;
+    // List of borrowers who this bank has borrowed from
+    mapping(address => uint256) borrowedAmount;
 }
