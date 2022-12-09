@@ -49,7 +49,13 @@ module "enabled_google_apis" {
     "meshconfig.googleapis.com",
     "mesh.googleapis.com",
     "multiclusteringress.googleapis.com",
-    "multiclusterservicediscovery.googleapis.com"
+    "multiclusterservicediscovery.googleapis.com",
+    "gkemulticloud.googleapis.com",
+    "gkeconnect.googleapis.com",
+    "connectgateway.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    "logging.googleapis.com",
+    "monitoring.googleapis.com"
   ]
 }
 
