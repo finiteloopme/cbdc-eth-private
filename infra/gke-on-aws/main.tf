@@ -234,6 +234,16 @@ module "anthos_cluster" {
   node_pool_instance_type                          = var.node_pool_instance_type
 
 }
+
+# module "asm-on-gke-on-gcp" {
+#   source = "../asm"
+
+#   project_id = var.project_id
+#   cluster_id = module.gke.name
+#   gcp_location = module.gke.location
+#   fleet_id   = google_gke_hub_membership.fleet_membership.membership_id
+# }
+
 module "create_vars" {
   source                = "terraform-google-modules/gcloud/google"
   platform              = "linux"

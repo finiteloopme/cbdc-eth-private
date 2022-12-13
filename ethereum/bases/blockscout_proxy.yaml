@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: blockscout-proxy-deployment
+  name: blockscout-proxy-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blockscout-proxy-deployment
+  template:
+    metadata:
+      labels:
+        app: blockscout-proxy-deployment
+    spec:
+      containers:
+        - image: nginx
+          name: blockscout-proxy-deployment
+          resources:
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - mountPath: /docker-entrypoint.d
+              name: blockscout-proxy-entrypoint-dir
+            - mountPath: /etc/nginx/nginx.conf
+              name: blockscout-proxy-conf
+              subPath: nginx.conf
+          securityContext:
+            privileged: true
+      volumes:
+        - configMap:
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+            name: blockscout-proxy-configmap
+          name: blockscout-proxy-conf
+          # The `nginx` image has some config overrides in `docker-entrypoint.d`
+          # that we don't want, so we just mount an empty dir on top of it.
+        - name: blockscout-proxy-entrypoint-dir
+          emptyDir: {}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: blockscout-proxy-lb
+  annotations:
+      cloud.google.com/neg: '{"ingress": true}' # Creates a NEG after an Ingress is created
+      cloud.google.com/backend-config: '{"default": "blockscout-proxy-backendconfig"}'
+spec:
+  selector:
+    app: blockscout-proxy-deployment
+  type: NodePort
+  ports:
+  - name: http
+    port: 8000
+
+---
+
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: blockscout-proxy-backendconfig
+spec:
+  healthCheck:
+    requestPath: /healthz
+  timeoutSec: 180
+  connectionDraining:
+    drainingTimeoutSec: 300
+  sessionAffinity:
+    affinityType: "GENERATED_COOKIE"
+    affinityCookieTtlSec: 50

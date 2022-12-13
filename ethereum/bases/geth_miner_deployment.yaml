@@ -1,0 +1,109 @@
+# Would this be required for Clique???
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: eth-geth-miner
+  labels:
+    app: eth-geth-miner
+spec:
+  serviceName: "eth-geth-miner"
+  replicas: 3
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: eth-geth-miner
+  template:
+    metadata:
+      labels:
+        app: eth-geth-miner
+    spec:
+      securityContext:
+        runAsUser: 2 # non-root
+        fsGroup: 2
+      volumes:
+      - name: eth-geth-miner-data
+        persistentVolumeClaim:
+          claimName: "eth-geth-miner-data"
+      - name: config
+        configMap:
+          name: geth-config
+          items:
+          - key: "genesis.json"
+            path: "genesis.json"
+      containers:
+      - name: geth-miner
+        image: ethereum/client-go:stable
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: "1"
+          requests:
+            cpu: "1"
+        command: ["/bin/sh"]
+        args:
+        - "-c"
+        - "geth --datadir='/etc/.ethereum' --bootnodes=`cat /etc/.ethereum/bootnodes` --mine --miner.etherbase=0 --networkid=${NETWORK_ID} --metrics --miner.threads=1 --ethash.dagdir='/etc/.ethereum/.ethash' --ethstats=${HOSTNAME}:${ETHSTATS_SECRET}@${ETHSTATS_SVC}"
+        env:
+        - name: ETHSTATS_SVC
+          value: eth-ethstats
+        - name: ETHSTATS_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: eth-ethstats
+              key: WS_SECRET
+        - name: NETWORK_ID
+          valueFrom:
+            configMapKeyRef:
+              name: geth-config
+              key: networkid
+        ports:
+        - name: discovery-udp
+          containerPort: 30303
+          protocol: UDP
+        - name: discovery-tcp
+          containerPort: 30303
+        volumeMounts:
+        - name: eth-geth-miner-data
+          mountPath: /etc/.ethereum
+      initContainers:
+      - name: init-genesis-and-create-account
+        image: ethereum/client-go:release-1.8
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh"]
+        args:
+        - "-c"
+        - "num_accounts=$(geth account list --datadir=/etc/.ethereum | grep 'Account' | wc -l);if [ $num_accounts -eq 0 ]; then echo 'Initializing genesis'; geth init  --datadir='/etc/.ethereum' /etc/geth/genesis.json; echo 'creating account';printf '$(ACCOUNT_SECRET)\n$(ACCOUNT_SECRET)\n' | geth account new --datadir='/etc/.ethereum';else echo 'Skipping genesis & account creation, as previous initialization has already happened.';fi;"
+        env:
+        - name: ACCOUNT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: eth-geth-miner
+              key: accountsecret
+        volumeMounts:
+        - name: eth-geth-miner-data
+          mountPath: /etc/.ethereum
+        - name: config
+          mountPath: /etc/geth
+      - name: get-bootnodes
+        image: curlimages/curl
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh"]
+        args:
+        - "-c"
+        - "if [ -s /geth/bootnodes ]; then rm -f /geth/bootnodes; fi; CNT=0; echo 'retreiving bootnodes from $BOOTNODE_REGISTRAR_SVC'; while [ $CNT -le 90 ]; do curl -m 5 -s $BOOTNODE_REGISTRAR_SVC | xargs echo -n >> /geth/bootnodes; if [ -s /geth/bootnodes ]; then cat /geth/bootnodes; exit 0; fi; echo 'no bootnodes found. retrying $CNT...'; sleep 2 || break; CNT=$((CNT+1)); done; echo 'WARNING. unable to find bootnodes. continuing but geth may not be able to find any peers.'; exit 0;"
+        env:
+        - name: BOOTNODE_REGISTRAR_SVC
+          value: eth-bootnode-registrar
+        volumeMounts:
+        - name: eth-geth-miner-data
+          mountPath: /geth
+  volumeClaimTemplates:
+    - metadata:
+        name: eth-geth-miner-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "standard"
+        resources:
+          requests:
+            storage: 10Gi
+

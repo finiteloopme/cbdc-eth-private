@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: blockscout-lb
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+    cloud.google.com/backend-config: '{"default": "blockscout-lb-backendconfig"}'
+    networking.gke.io/load-balancer-type: "Internal"
+spec:
+  selector:
+    app: blockscout
+  type: NodePort
+  ports:
+  - name: http
+    port: 4000
+
+---
+
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: blockscout-lb-backendconfig
+spec:
+  healthCheck:
+    requestPath: /explorer/blocks
+    port: 4000
+  timeoutSec: 180
+  connectionDraining:
+    drainingTimeoutSec: 300
+  sessionAffinity:
+    affinityType: "GENERATED_COOKIE"
+    affinityCookieTtlSec: 50

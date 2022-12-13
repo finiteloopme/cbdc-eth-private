@@ -34,3 +34,13 @@ resource "google_gke_hub_membership" "fleet_membership" {
    issuer = "https://container.googleapis.com/v1/${module.gke.cluster_id}"
   }
 }
+
+# module "asm-on-gke-on-gcp" {
+#   source = "../asm"
+
+#   project_id = var.project_id
+#   cluster_id = module.gke.name
+#   gcp_location = module.gke.location
+#   fleet_id   = google_gke_hub_membership.fleet_membership.membership_id
+  
+# }

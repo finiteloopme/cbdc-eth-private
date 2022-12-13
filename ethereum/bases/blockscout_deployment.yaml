@@ -1,0 +1,108 @@
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: blockscout
+  labels:
+    app: blockscout
+spec:
+  serviceName: "blockscout"
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: blockscout
+  template:
+    metadata:
+      labels:
+        app: blockscout
+    spec:
+      securityContext:
+        runAsUser: 2 # non-root
+        fsGroup: 2
+      volumes:
+        - name: blockscout-data
+          persistentVolumeClaim:
+            claimName: "blockscout-data"
+        - name: blockscout-scripts
+          configMap:
+            name: blockscout-scripts-configmap
+            defaultMode: 0555
+        - name: blockscout-cert
+          emptyDir: {}
+      containers:
+      - name: blockscout
+        image: consensys/blockscout:v4.0.0-beta
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1"
+        command: ["/opt/blockscout-scripts/run-blockscout.sh"]
+        ports:
+        - name: http
+          containerPort: 4000
+        volumeMounts:
+        - name: blockscout-data
+          mountPath: /opt/blockscout-data
+        - name: blockscout-scripts
+          mountPath: /opt/blockscout-scripts
+        - name: blockscout-cert
+          mountPath: /opt/app/apps/block_scout_web/priv/cert
+        env:
+        - name: ETHEREUM_JSONRPC_VARIANT
+          value: "geth"
+        - name: ETHEREUM_JSONRPC_HTTP_URL
+          value: "eth-geth-tx-headless:8545"
+        - name: ETHEREUM_JSONRPC_TRACE_URL
+          value: "eth-geth-tx-headless:8545"
+        - name: ETHEREUM_JSONRPC_WS_URL
+          value: "ws://eth-geth-tx-headless:8546"
+          # Permissions must be enforced using IAM
+        - name: DATABASE_URL
+          value: "postgresql://admin:fr54fwfr22SDF4r@127.0.0.1:5432/blockscout?ssl=false"
+        - name: NETWORK
+          value: "KunalL"
+        - name: NETWORK_PATH
+          value: "/explorer"
+        - name: API_PATH
+          value: "/explorer"
+        - name: BLOCKSCOUT_HOST
+          value: "private.eth.kunall"
+        - name: BLOCKSCOUT_PROTOCOL
+          value: "https"
+        - name: COIN
+          value: "GETH"
+        - name: ECTO_USE_SSL
+          value: "false"
+        - name: DISABLE_EXCHANGE_RATES
+          value: "true"
+      - name: cloudsql-proxy
+        image: gcr.io/cloudsql-docker/gce-proxy:latest
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu:    "1"
+        command: [
+          "/cloud_sql_proxy",
+          "-instances=$(CLOUD_SQL_CONNECTION)=tcp:5432",
+          "-log_debug_stdout",
+          "-ip_address_types=PRIVATE"
+        ]
+        securityContext:
+          runAsUser: 2
+          allowPrivilegeEscalation: false
+        env:
+        - name: CLOUD_SQL_CONNECTION
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: cloud_sql_connection
+  volumeClaimTemplates:
+    - metadata:
+        name: blockscout-data
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        storageClassName: "standard"
+        resources:
+          requests:
+            storage: 10Mi

@@ -1,0 +1,50 @@
+# Headless service used for intra-cluster connection by Blockscout.
+apiVersion: v1
+kind: Service
+metadata:
+  name: eth-geth-tx-headless
+spec:
+  clusterIP: None
+  selector:
+    app: eth-geth-tx
+  ports:
+    - name: http
+      port: 8545
+    - name: ws
+      port: 8546
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: eth-geth-tx-lb
+  annotations:
+      cloud.google.com/neg: '{"ingress": true}' # Creates a NEG after an Ingress is created
+      cloud.google.com/backend-config: '{"default": "eth-geth-tx-backendconfig"}'
+spec:
+  selector:
+    app: eth-geth-tx
+  type: NodePort
+  ports:
+  - name: http
+    port: 443
+    targetPort: 8545
+
+---
+
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: eth-geth-tx-backendconfig
+spec:
+  healthCheck:
+    requestPath: /
+    # must match containerPort, not the service port as per https://cloud.google.com/kubernetes-engine/docs/how-to/ingress-features#direct_health
+    port: 8545
+  timeoutSec: 180
+  connectionDraining:
+    drainingTimeoutSec: 300
+  sessionAffinity:
+    affinityType: "GENERATED_COOKIE"
+    affinityCookieTtlSec: 50

@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eth-bootnode-registrar
+  labels:
+    app: eth-bootnode-registrar
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: eth-bootnode-registrar
+  template:
+    metadata:
+      labels:
+        app: eth-bootnode-registrar
+    spec:
+      securityContext:
+        runAsUser: 2 # non-root
+        fsGroup: 2
+      containers:
+      - name: bootnode-registrar
+        image: jpoon/bootnode-registrar:v1.0.0
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh"]
+        args:
+          - "-c"
+          - "./bootnode-registrar -service eth-bootnode.${MY_POD_NAMESPACE}.svc.cluster.local"
+        env:
+        - name: MY_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        ports:
+        - containerPort: 9898
