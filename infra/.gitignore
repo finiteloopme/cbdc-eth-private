@@ -35,3 +35,7 @@ override.tf.json
 terraform.rc
 
 vars.sh
+
+# ASM specific files
+tmp/
+asmcli

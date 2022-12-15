@@ -70,3 +70,15 @@ module "vpc" {
 
     shared_vpc_host = false
 }
+
+# Create SA to be used as a SQL Client
+module "service_accounts" {
+  source        = "terraform-google-modules/service-accounts/google"
+  version       = "~> 3.0"
+  project_id    = var.project_id
+  # prefix        = "test-sa"
+  names         = ["sa-eth-priv-kunall"]
+  project_roles = [
+    "${var.project_id}=>roles/cloudsql.client",
+  ]
+}

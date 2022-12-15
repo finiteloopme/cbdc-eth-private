@@ -5,7 +5,8 @@
 # 2. Fleet id
 # 3. Action: install or uninstall
 # 4. Fleet membership ID
-if [ "$#" -lt 4 ]; then
+# ./manage-asm.sh 1.15 anthos-demo-kunall install 
+if [ "$#" -lt 3 ]; then
     >&2 echo "Not all expected arguments set."
     exit 1
 fi
@@ -20,24 +21,26 @@ if test -f "${ASMCLI}"; then
     echo "${ASMCLI} exists.  No need to download again"
 else
     echo "Downloading ${ASMCLI}..."
-    curl https://storage.googleapis.com/csm-artifacts/asc/asmcli_${ASM_VERSION} > ${ASMCLI}
+    curl https://storage.googleapis.com/csm-artifacts/asm/asmcli_${ASM_VERSION} > ${ASMCLI}
     chmod 755 asmcli
 fi
 
-gcloud container memberships get-credentials ${FLEET_MEMBERSHIP_ID}
+gcloud container hub memberships get-credentials ${FLEET_MEMBERSHIP_ID}
 
-if [ "${ACTION}" == "install"]; then
-    rm -fr ./tmp/asm-output-dir/${FLEET_ID}
-    mkdir -p ./tmp/asm-output-dir/${FLEET_ID}
+if [ "${ACTION}" == "install" ]; then
+    echo "Installing ASM..."
+    rm -fr ./tmp/asm-output-dir/${FLEET_MEMBERSHIP_ID}
+    mkdir -p ./tmp/asm-output-dir/${FLEET_MEMBERSHIP_ID}
     # install script
     ./${ASMCLI} install \
     --fleet_id ${FLEET_ID} \
-    --output_dir ./tmp/asm-output-dir/${FLEET_ID} \
+    --output_dir ./tmp/asm-output-dir/${FLEET_MEMBERSHIP_ID} \
     --platform multicloud \
     --enable_all \
     --ca mesh_ca \
     --option stackdriver
 else
+    echo "Uninstalling ASM..."
     # uninstall script
     kubectl label namespace default istio.io/rev-
     kubectl label namespace default istio-injection-
