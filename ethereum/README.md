@@ -1,4 +1,9 @@
 
+# Warning
+
+> The instructions for deploying to multi-cloud are not included yet.
+> Deploys successfully to a single cluster.
+
 # Hardcoded values
 
 > TODO: remove this hard coding
@@ -11,13 +16,13 @@
 # Installation steps
 
 ```bash
-cd env
+cd all
 kubectl apply -k .
 ```
 
 # Uninstallation steps
 
 ```bash
-cd env
+cd all
 kubectl delete -k .
 ```
