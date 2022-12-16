@@ -17,6 +17,15 @@ module "gke" {
   subnetwork         = "default"
   ip_range_pods      = ""
   ip_range_services  = ""
+  node_pools = [
+    {
+      name         = "default-node-pool"
+      autoscaling  = true
+      auto_upgrade = true
+      node_count   = 5
+      machine_type = "e2-standard-8"
+    },
+  ]
 }
 
 # Register a fleet membership for the cluster

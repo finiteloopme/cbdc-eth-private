@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../genesis
+  
+resources:
+- geth_miner_secret.yaml
+- geth_miner_deployment.yaml
+- geth_tx_service.yaml
+- geth_tx_deployment.yaml

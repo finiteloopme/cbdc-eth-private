@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- blockscout_deployment.yaml
+- blockscout_proxy.yaml
+- blockscout_service.yaml
+- service_account.yaml
+
+configMapGenerator:
+  - name: blockscout-scripts-configmap
+    files:
+    - run-blockscout.sh
+  - name: blockscout-proxy-configmap
+    files:
+    - nginx.conf=blockscout-proxy-nginx.conf
+  - name: app-config
+    literals:
+    # TODO: Fix PROJECT_ID being hardcoded
+      - cloud_sql_connection="anthos-demo-kunall:us-central1:blockscout"

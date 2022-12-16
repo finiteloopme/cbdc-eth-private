@@ -1,6 +1,7 @@
 # Configuration of Anthos Service Mesh
 
-> Mac OS can cause issues.  Recommended way is using Cloud Shell
+> Mac OS can cause issues.  Recommend using Cloud Shell
+> to issue these commands
 
 ## Get `ASMCLI`
 
@@ -53,4 +54,6 @@ mkdir -p ./tmp/asm-output-dir/${MEMBERSHIP_ID}
     --enable_all \
     --ca mesh_ca \
     --option stackdriver 
+# Enable auto-injection of sidecar
+kubectl label namespace default  istio-injection- istio.io/rev=asm-1153-6 --overwrite
 ```

@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- bootnode_deployment.yaml
+- bootnode_registrar_deployment.yaml
+- bootnode_registrar_service.yaml
+- bootnode_service.yaml

@@ -55,7 +55,9 @@ module "enabled_google_apis" {
     "connectgateway.googleapis.com",
     "cloudresourcemanager.googleapis.com",
     "logging.googleapis.com",
-    "monitoring.googleapis.com"
+    "monitoring.googleapis.com",
+    "sqladmin.googleapis.com",
+    "servicenetworking.googleapis.com"
   ]
 }
 
@@ -80,5 +82,26 @@ module "service_accounts" {
   names         = ["sa-eth-priv-kunall"]
   project_roles = [
     "${var.project_id}=>roles/cloudsql.client",
+  ]
+}
+
+# Allow default SA to access SQL
+# [proj-number]-compute@developer.gserviceaccount.com
+
+# data "google_project" "anthos_demo" {
+#   project_id = var.project_id
+# }
+# resource "google_project_iam_member" "project" {
+#   project = data.google_project.anthos_demo.project_id
+#   role    = "roles/cloudsql.client"
+#   member  = "serviceAccount:${data.google_project.anthos_demo.number}-compute@developer.gserviceaccount.com"
+# }
+
+resource "google_service_account_iam_binding" "admin-account-iam" {
+  service_account_id = module.service_accounts.service_account.id
+  # role               = "roles/iam.serviceAccountUser"
+  role = "roles/iam.workloadIdentityUser"
+  members = [
+    "serviceAccount:${var.project_id}.svc.id.goog[default/default]",
   ]
 }

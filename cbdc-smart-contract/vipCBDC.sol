@@ -4,7 +4,7 @@ pragma solidity ^0.8.6;
 
 // Defines ERC20 interface
 import "./ierc20.sol";
-// Define for a Bank type
+// Defines a Bank type
 import "./bank.sol";
 
 contract vipCBDC is IERC20 {
@@ -22,6 +22,7 @@ contract vipCBDC is IERC20 {
     // List of all the banks
     mapping(address => Bank) banks;
 
+    // A map to facilitate a line of credit
     mapping(address => mapping (address => uint256)) allowed;
 
     uint256 constant originalSupply = 1000 ether;
@@ -75,7 +76,7 @@ contract vipCBDC is IERC20 {
         return true;
     }
 
-    // Approve a loan
+    // Approve a credit (loan?)
     function approve(address delegate, uint256 numTokens) public override returns (bool) {
         allowed[msg.sender][delegate] = numTokens;
         emit Approval(msg.sender, delegate, numTokens);

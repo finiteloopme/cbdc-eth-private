@@ -96,7 +96,7 @@ resource "google_container_aws_node_pool" "this" {
   }
   autoscaling {
     min_node_count = 2
-    max_node_count = 5
+    max_node_count = 10
   }
   config {
     config_encryption {
